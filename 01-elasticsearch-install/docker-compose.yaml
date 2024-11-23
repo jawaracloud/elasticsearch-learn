@@ -9,7 +9,6 @@ services:
       - transport.host=0.0.0.0
       - xpack.security.enabled=true
       - bootstrap.memory_lock=true
-      # Reduced JVM heap size to leave room for OS
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
       - ELASTIC_PASSWORD=9ee3c7c6b7bab6c602b4972b0ad6f1e1
     ulimits:
