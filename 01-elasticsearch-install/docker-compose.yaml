@@ -1,3 +1,4 @@
+name: elastic-kibana-stack
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.16.1
@@ -6,32 +7,68 @@ services:
       - discovery.type=single-node
       - http.host=0.0.0.0
       - transport.host=0.0.0.0
-      - xpack.security.enabled=false
+      - xpack.security.enabled=true
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xmx1024m -Xms1024m"
+      # Reduced JVM heap size to leave room for OS
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - ELASTIC_PASSWORD=9ee3c7c6b7bab6c602b4972b0ad6f1e1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        reservations:
+          memory: 2G
+          cpus: 1.0
+        limits:
+          memory: 4G
+          cpus: 1.0
     networks:
       - elasticsearch
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
       - esdata:/usr/share/elasticsearch/data
-      - ./conf/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./conf/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.16.1
+    container_name: kibana
     restart: always
     ports:
       - "5601:5601"
     networks:
       - elasticsearch
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - ./conf/kibana.yml:/usr/share/kibana/config/kibana.yml
-    links:
-      - elasticsearch
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    volumes:
+      - ./conf/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 1G
+          cpus: 1.0
+        limits:
+          memory: 2G
+          cpus: 1.0
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
 
 networks:
   elasticsearch:
