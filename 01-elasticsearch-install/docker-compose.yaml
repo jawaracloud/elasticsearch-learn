@@ -29,10 +29,11 @@ services:
     networks:
       - elasticsearch
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      test: ["CMD-SHELL", "curl -s -u elastic:9ee3c7c6b7bab6c602b4972b0ad6f1e1 -H 'Content-Type: application/json' http://localhost:9200/_cluster/health | grep -q '\"status\":\"\\(green\\|yellow\\)\"'"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -49,12 +50,15 @@ services:
     networks:
       - elasticsearch
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
+      test: ["CMD-SHELL", "curl -s -I http://localhost:5601/api/status | grep -q 'HTTP/1.1 200'"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=9ee3c7c6b7bab6c602b4972b0ad6f1e1
     volumes:
       - ./conf/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
     deploy:
