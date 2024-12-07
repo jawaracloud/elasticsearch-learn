@@ -1,9 +1,0 @@
-# Default Kibana configuration for docker target
-server.name: kibana
-server.host: "0.0.0.0"
-server.port: 5601
-elasticsearch.hosts: [ "http://elasticsearch:9200" ]
-elasticsearch.username: "kibana_system"
-elasticsearch.password: "9ee3c7c6b7bab6c602b4972b0ad6f1e1"
-monitoring.ui.container.elasticsearch.enabled: true
-xpack.encryptedSavedObjects.encryptionKey: "9ee3c7c6b7bab6c602b4972b0ad6f1e1"
